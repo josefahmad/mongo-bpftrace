@@ -1,0 +1,3 @@
+Display thread which forces a flush of the WiredTiger log (MongoDB journal)
+
+# bpftrace -e 'uprobe:/usr/local/bin/mongod:__wt_log_force_sync { printf("%s %d\n", comm, pid) }'
