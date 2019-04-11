@@ -1,0 +1,10 @@
+uprobe:/usr/local/bin/mongod:__wt_log_force_sync
+{
+  @start[tid] = nsecs;
+}
+
+uretprobe:/usr/local/bin/mongod:__wt_log_force_sync / @start[tid] /
+{
+  @times = hist(nsecs - @start[tid]);
+  delete(@start[tid]);
+}
