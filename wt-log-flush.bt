@@ -1,3 +1,8 @@
+// Produce a histogram of time (in nanoseconds) spent in __wt_log_force_sync
+
+// __wt_log_force_sync forces a sync of the WT log files (the MongoDB journal) 
+
+
 uprobe:/usr/local/bin/mongod:__wt_log_force_sync
 {
   @start[tid] = nsecs;
