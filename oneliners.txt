@@ -1,3 +1,11 @@
 Display thread which forces a flush of the WiredTiger log (MongoDB journal)
 
 # bpftrace -e 'uprobe:/usr/local/bin/mongod:__wt_log_force_sync { printf("%s %d\n", comm, pid) }'
+
+Trace unlocking the global lock. Might need USDT to trace the lock being granted.
+
+# bpftrace -e 'uprobe:/usr/local/bin/mongod:_ZN5mongo4Lock10GlobalLock7_unlockEv { printf("%s (%u) GlobalLock::_unlock() %s\n", comm, tid, ustack) }'
+
+Trace pthread_mutex_unlock (not specific to a process).
+
+# bpftrace -e 'uprobe:/lib64/libpthread-2.28.so:pthread_mutex_unlock  { printf("%s\n", comm) }'
