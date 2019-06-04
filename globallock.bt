@@ -1,0 +1,15 @@
+BEGIN
+{
+        printf("Tracing global lock acquisitions... Hit Ctrl-C to end.\n");
+}
+
+uprobe:/usr/local/bin/mongod:_ZN5mongo10LockerImplILb0EE16_lockGlobalBeginEPNS_16OperationContextENS_8LockModeENS_6Date_tE
+{
+  @start[tid] = nsecs;
+}
+
+uretprobe:/usr/local/bin/mongod:_ZN5mongo4Lock10GlobalLock7_unlockEv / @start[tid] /
+{
+  @hold_time_ns = hist(nsecs - @start[tid]);
+  delete(@start[tid]);
+}
