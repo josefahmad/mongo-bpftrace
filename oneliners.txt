@@ -9,3 +9,7 @@ Trace unlocking the global lock. Might need USDT to trace the lock being granted
 Trace pthread_mutex_unlock (not specific to a process).
 
 # bpftrace -e 'uprobe:/lib64/libpthread-2.28.so:pthread_mutex_unlock  { printf("%s\n", comm) }'
+
+Count eviction passes per thread.
+
+# bpftrace -e 'uprobe:/usr/local/bin/mongod:__evict_lru_pages { @[comm, tid] = count() }'
