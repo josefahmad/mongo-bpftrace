@@ -8,8 +8,11 @@ uprobe:/usr/local/bin/mongod:_ZN5mongo10LockerImplILb0EE16_lockGlobalBeginEPNS_1
   @start[tid] = nsecs;
 }
 
-uretprobe:/usr/local/bin/mongod:_ZN5mongo4Lock10GlobalLock7_unlockEv / @start[tid] /
+uretprobe:/usr/local/bin/mongod:_ZN5mongo4Lock10GlobalLock7_unlockEv / @start[tid] && nsecs - @start[tid] > 0 /
 {
+  time();
+  printf("%u %s %u %s\n", (nsecs - @start[tid]) / 1000000, comm, tid, ustack);
+
   @hold_time_ns = hist(nsecs - @start[tid]);
   delete(@start[tid]);
 }
