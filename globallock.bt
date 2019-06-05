@@ -5,14 +5,15 @@ BEGIN
 
 uprobe:/usr/local/bin/mongod:_ZN5mongo10LockerImplILb0EE16_lockGlobalBeginEPNS_16OperationContextENS_8LockModeENS_6Date_tE
 {
-  @start[tid] = nsecs;
+	@start[tid] = nsecs;
 }
 
-uretprobe:/usr/local/bin/mongod:_ZN5mongo4Lock10GlobalLock7_unlockEv / @start[tid] && nsecs - @start[tid] > 0 /
+uretprobe:/usr/local/bin/mongod:_ZN5mongo4Lock10GlobalLock7_unlockEv
+/ @start[tid] && nsecs - @start[tid] > 1000000 /
 {
-  time();
-  printf("%u %s %u %s\n", (nsecs - @start[tid]) / 1000000, comm, tid, ustack);
+	time();
+	printf("pid=%u, tid=%u comm=%s holdtime_ms=%u %s\n", pid, tid, comm, (nsecs - @start[tid]) / 1000000, ustack);
 
-  @hold_time_ns = hist(nsecs - @start[tid]);
-  delete(@start[tid]);
+	@hold_time_ms = hist((nsecs - @start[tid]) / 1000000);
+	delete(@start[tid]);
 }
