@@ -1,8 +1,3 @@
-BEGIN
-{
-        printf("Tracing global lock acquisitions... Hit Ctrl-C to end.\n");
-}
-
 uprobe:/usr/local/bin/mongod:_ZN5mongo10LockerImplILb0EE16_lockGlobalBeginEPNS_16OperationContextENS_8LockModeENS_6Date_tE
 {
 	@mode[tid] = arg2;
@@ -19,7 +14,6 @@ uretprobe:/usr/local/bin/mongod:_ZN5mongo10LockerImplILb0EE16_lockGlobalBeginEPN
 uprobe:/usr/local/bin/mongod:_ZN5mongo4Lock10GlobalLock7_unlockEv
 / @time_granted[tid] && nsecs - @time_granted[tid] > 1000000 /
 {
-	time();
 //	printf("pid=%u, tid=%u comm=%s mode=%u holdtime_ms=%u %s\n", pid, tid, comm, @mode[tid], (nsecs - @time_granted[tid]) / 1000000, @stacks[tid]);
 	printf("pid=%u, tid=%u comm=%s mode=%u holdtime_ms=%u %s\n", pid, tid, comm, @mode[tid], (nsecs - @time_granted[tid]) / 1000000, ustack);
 
