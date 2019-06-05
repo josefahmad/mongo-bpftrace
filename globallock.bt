@@ -12,18 +12,19 @@ uretprobe:/usr/local/bin/mongod:_ZN5mongo10LockerImplILb0EE16_lockGlobalBeginEPN
 / @mode[tid] /
 {
 	@time_granted[tid] = nsecs;
-	@stack[tid] = ustack;
+//	@stacks[tid] = ustack;
 	
 }
 
-uretprobe:/usr/local/bin/mongod:_ZN5mongo4Lock10GlobalLock7_unlockEv
+uprobe:/usr/local/bin/mongod:_ZN5mongo4Lock10GlobalLock7_unlockEv
 / @time_granted[tid] && nsecs - @time_granted[tid] > 1000000 /
 {
 	time();
-	printf("pid=%u, tid=%u comm=%s mode=%u holdtime_ms=%u %s\n", pid, tid, comm, @mode[tid], (nsecs - @time_granted[tid]) / 1000000, @stack[tid]);
+//	printf("pid=%u, tid=%u comm=%s mode=%u holdtime_ms=%u %s\n", pid, tid, comm, @mode[tid], (nsecs - @time_granted[tid]) / 1000000, @stacks[tid]);
+	printf("pid=%u, tid=%u comm=%s mode=%u holdtime_ms=%u %s\n", pid, tid, comm, @mode[tid], (nsecs - @time_granted[tid]) / 1000000, ustack);
 
-	@hold_time_ms = hist((nsecs - @time_granted[tid]) / 1000000);
 	delete(@time_granted[tid]);
 	delete(@mode[tid]);
-	delete(@stack[tid]);
+//	delete(@stacks[tid]);
 }
+
