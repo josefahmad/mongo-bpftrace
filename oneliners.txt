@@ -13,3 +13,7 @@ Trace pthread_mutex_unlock (not specific to a process).
 Count eviction passes per thread.
 
 # bpftrace -e 'uprobe:/usr/local/bin/mongod:__evict_lru_pages { @[comm, tid] = count() }'
+
+Print a stack trace on uassert()
+
+# bpftrace -e 'uprobe:/usr/local/bin/mongod:_ZN5mongo21uassertedWithLocationERKNS_6StatusEPKcj{ printf("%s (%u) %s\n", comm, tid, ustack) }'
