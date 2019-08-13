@@ -1,18 +1,31 @@
-// This is WIP doesn't output anything meaningful at this stage
+// Trace server-side latency for client requests
+//   at the 'core database' level - handleRequest()
+//   and including the database networking (transport) layer - sourceMessage/sinkMessage
 
-// Note the conn thread sleeps in _sourceMessage
+
+//////////////////////////////// Transport Layer ///////////////////////////////////////////////////////
 
 uprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine15_sourceCallbackENS_6StatusE
 { 
-	printf("%s %u %s\n", comm, tid, ustack)
+	@source[tid] = nsecs;
 }
+
+uretprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine12_sinkMessageENS0_11ThreadGuardENS_7MessageE / @source[tid] /
+{ 
+  	printf("%d: source->sink message: %d ns\n", tid, nsecs - @source[tid]);
+  	delete(@source[tid]);
+}
+
+//////////////////////////////// handleRequest()  ///////////////////////////////////////////////////////
 
 uprobe:/usr/local/bin/mongod:_ZN5mongo23ServiceEntryPointCommon13handleRequestEPNS_16OperationContextERKNS_7MessageERKNS0_5HooksE
 { 
-	printf("%s %u %s\n", comm, tid, ustack)
+	@handle[tid] = nsecs;
 }
 
-uprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine12_sinkMessageENS0_11ThreadGuardENS_7MessageE
+uretprobe:/usr/local/bin/mongod:_ZN5mongo23ServiceEntryPointCommon13handleRequestEPNS_16OperationContextERKNS_7MessageERKNS0_5HooksE / @handle[tid] /
 { 
-	printf("%s %u %s\n", comm, tid, ustack)
+  	printf("%d: handleRequest %d ns\n", tid, nsecs - @handle[tid]);
+  	delete(@handle[tid]);
 }
+
