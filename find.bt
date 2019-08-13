@@ -1,0 +1,10 @@
+uprobe:/usr/local/bin/mongod:_ZN5mongo12_GLOBAL__N_17FindCmd3runEPNS_16OperationContextERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS_7BSONObjERNS_14BSONObjBuilderE
+{
+  @start[tid] = nsecs;
+}
+
+uretprobe:/usr/local/bin/mongod:_ZN5mongo12_GLOBAL__N_17FindCmd3runEPNS_16OperationContextERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS_7BSONObjERNS_14BSONObjBuilderE / @start[tid] /
+{
+  printf("%d: %d us\n", tid, (nsecs - @start[tid]) / 1000);
+  delete(@start[tid]);
+}

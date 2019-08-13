@@ -1,0 +1,10 @@
+uprobe:/usr/local/bin/mongod:_ZN5mongo23ServiceEntryPointCommon13handleRequestEPNS_16OperationContextERKNS_7MessageERKNS0_5HooksE
+{
+  @start[tid] = nsecs;
+}
+
+uretprobe:/usr/local/bin/mongod:_ZN5mongo23ServiceEntryPointCommon13handleRequestEPNS_16OperationContextERKNS_7MessageERKNS0_5HooksE / @start[tid] /
+{
+  printf("%d: %d us\n", tid, (nsecs - @start[tid]) / 1000);
+  delete(@start[tid]);
+}
