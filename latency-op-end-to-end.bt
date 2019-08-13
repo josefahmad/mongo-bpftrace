@@ -2,7 +2,7 @@
 
 // Note the conn thread sleeps in _sourceMessage
 
-uprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine14_sourceMessageENS0_11ThreadGuardE
+uprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine15_sourceCallbackENS_6StatusE
 { 
 	printf("%s %u %s\n", comm, tid, ustack)
 }
