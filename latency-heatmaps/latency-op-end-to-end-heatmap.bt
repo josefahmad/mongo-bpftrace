@@ -1,0 +1,21 @@
+// Trace server-side latency for client requests
+//   at the 'core database' level - handleRequest()
+//   and including the database networking (transport) layer - sourceMessage/sinkMessage
+
+
+//////////////////////////////// Transport Layer ///////////////////////////////////////////////////////
+
+uprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine15_sourceCallbackENS_6StatusE
+{ 
+	@source[tid] = nsecs;
+}
+
+uretprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine12_sinkMessageENS0_11ThreadGuardENS_7MessageE / @source[tid] /
+{ 
+//  	printf("%d: source->sink message: %d ns\n", tid, nsecs - @source[tid]);
+
+	// Generate heatmap formatted output - https://github.com/brendangregg/HeatMap
+	printf("%u %u\n", elapsed / 1000, (nsecs - @source[tid]) / 1000);
+  	delete(@source[tid]);
+}
+
