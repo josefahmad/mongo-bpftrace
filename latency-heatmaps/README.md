@@ -2,7 +2,8 @@ Traffic generator: POCDriver - https://github.com/johnlpage/POCDriver
 
 Latency Heatmap: https://github.com/brendangregg/HeatMap
 
-$ mlunch init --single
+$ mlaunch init --single # tested with 4.0.12
+
 $ java -jar POCDriver.jar
 
 $ sudo bpftrace latency-op-end-to-end-heatmap.bt > heatmap.txt
