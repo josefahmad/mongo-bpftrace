@@ -1,18 +1,33 @@
 // Trace server-side latency for client requests
-//   at the 'core database' level - handleRequest()
-//   and including the database networking (transport) layer - sourceMessage/sinkMessage
+
+// At the moment it does not include the latency receiving the request from the network.
+
+// This script currently sets the following probes:
+// t0: uprobe on _sourceCallback(), which is called as soon as the thread has received the full client request
+//     from the network stack.
+// t1: uretprobe on _processMessage(). At this stage the response has been already (synchronously) relayed to
+//     the client.
 
 
-//////////////////////////////// Transport Layer ///////////////////////////////////////////////////////
+// Recap of Service State Machine (default synchronous mode):
+// sourceMessage: The connection thread sleeps until it's fed the message from the network stack.
+// processMessage: The connection thread processes and sinks the message back to the client.
+// cleanupSession: not relevant.
+
+// Probe on ServiceStateMachine::_sourceCallback.
+// The client request is delivered to the connection thread. Does not include the time spent on the network.
 
 uprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine15_sourceCallbackENS_6StatusE
 { 
 	@source[tid] = nsecs;
 }
 
-uretprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine12_sinkMessageENS0_11ThreadGuardENS_7MessageE / @source[tid] /
+// Return probe on ServiceStateMachine::_processMessage
+// It includes the time spent on the network.
+
+uretprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine15_processMessageENS0_11ThreadGuardE / @source[tid] /
 { 
-//  	printf("%d: source->sink message: %d ns\n", tid, nsecs - @source[tid]);
+//  	printf("%d: %d ns\n", tid, nsecs - @source[tid]);
 
 	// Generate heatmap formatted output - https://github.com/brendangregg/HeatMap
 	printf("%u %u\n", elapsed / 1000, (nsecs - @source[tid]) / 1000);
