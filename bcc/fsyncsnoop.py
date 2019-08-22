@@ -28,6 +28,7 @@ struct key_t {
 struct val_t {
     u64 t0;
     u32 fd;
+    int stack_id;
 };
 
 struct userspace_data_t {
@@ -37,10 +38,13 @@ struct userspace_data_t {
     u64 t0;
     u64 t1;
     u64 t;
+    int stack_id;
 };
 
 BPF_PERF_OUTPUT(events);
 BPF_HASH(fsync_hash, struct key_t, struct val_t);
+BPF_STACK_TRACE(stacks, 4096);
+
 
 void trace_fsync(struct pt_regs *ctx, u32 fd) {
 //void trace_fsync(void *ctx) {
@@ -52,6 +56,7 @@ void trace_fsync(struct pt_regs *ctx, u32 fd) {
     key.tid = bpf_get_current_pid_tgid();
     val.t0 = now;
     val.fd = fd;
+    val.stack_id = stacks.get_stackid(ctx, BPF_F_REUSE_STACKID|BPF_F_USER_STACK);
 
     fsync_hash.update(&key, &val);
     //events.perf_submit(ctx, &data, sizeof(data));
@@ -77,6 +82,7 @@ void trace_ret_fsync(struct pt_regs *ctx) {
     udata.t0 = val->t0;
     udata.t1 = now;
     udata.fd = val->fd;
+    udata.stack_id = val->stack_id;
 
     if (udata.t1 < udata.t0) {
 	udata.t1 = udata.t0;
@@ -106,12 +112,24 @@ class Data(ct.Structure):
         ("t0", ct.c_ulonglong),
         ("t1", ct.c_ulonglong),
         ("t", ct.c_ulonglong),
+        ("stack_id", ct.c_ulong),
     ]
+
+
+stacks = b["stacks"]
+
+def print_stack(bpf, pid, stacks, stack_id):
+    for addr in stacks.walk(stack_id):
+        print('\t%16s' % (bpf.sym(addr, pid, show_module=False, show_offset=False)))
 
 # process event
 def print_event(cpu, data, size):
+    global b
+    global stacks
     event = ct.cast(data, ct.POINTER(Data)).contents
     print(datetime.datetime.now().isoformat() + " do_fsync() " + "comm=" + str(event.comm) +", tid=" + str(event.tid) + ", fd=" + str(event.fd) + " " + str(float(event.t)/1000/1000) + "ms")
+    print_stack(b, event.tid, stacks, event.stack_id)
+
 
 # loop with callback to print_event
 b["events"].open_perf_buffer(print_event)
