@@ -16,6 +16,7 @@
 from __future__ import print_function
 from bcc import BPF
 import ctypes as ct
+import datetime
 
 # load BPF program
 b = BPF(text="""
@@ -107,7 +108,7 @@ class Data(ct.Structure):
 # process event
 def print_event(cpu, data, size):
     event = ct.cast(data, ct.POINTER(Data)).contents
-    print("do_fsync() tid=" + str(event.tid) + ", fd=" + str(event.fd) + " " + str(float(event.t)/1000/1000) + "ms")
+    print(datetime.datetime.now().isoformat() + " do_fsync() tid=" + str(event.tid) + ", fd=" + str(event.fd) + " " + str(float(event.t)/1000/1000) + "ms")
 
 # loop with callback to print_event
 b["events"].open_perf_buffer(print_event)
