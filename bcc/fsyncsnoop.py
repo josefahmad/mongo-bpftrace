@@ -107,7 +107,7 @@ class Data(ct.Structure):
 # process event
 def print_event(cpu, data, size):
     event = ct.cast(data, ct.POINTER(Data)).contents
-    print("do_fsync() tid: " + str(event.tid) + ", fd: " + str(event.fd) + " " + str(event.t) + "ns")
+    print("do_fsync() tid=" + str(event.tid) + ", fd=" + str(event.fd) + " " + str(float(event.t)/1000/1000) + "ms")
 
 # loop with callback to print_event
 b["events"].open_perf_buffer(print_event)
