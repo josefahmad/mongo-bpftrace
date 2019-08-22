@@ -32,6 +32,7 @@ struct val_t {
 
 struct userspace_data_t {
     u32 tid;
+    char comm[16];
     u32 fd;
     u64 t0;
     u64 t1;
@@ -72,6 +73,7 @@ void trace_ret_fsync(struct pt_regs *ctx) {
     struct userspace_data_t udata = {};
 
     udata.tid = key.tid;
+    bpf_get_current_comm(&udata.comm, sizeof(udata.comm));
     udata.t0 = val->t0;
     udata.t1 = now;
     udata.fd = val->fd;
@@ -99,6 +101,7 @@ b.attach_kretprobe(event="do_fsync",
 class Data(ct.Structure):
     _fields_ = [
         ("tid", ct.c_uint),
+	("comm", ct.c_char * 16),
         ("fd", ct.c_uint),
         ("t0", ct.c_ulonglong),
         ("t1", ct.c_ulonglong),
@@ -108,7 +111,7 @@ class Data(ct.Structure):
 # process event
 def print_event(cpu, data, size):
     event = ct.cast(data, ct.POINTER(Data)).contents
-    print(datetime.datetime.now().isoformat() + " do_fsync() tid=" + str(event.tid) + ", fd=" + str(event.fd) + " " + str(float(event.t)/1000/1000) + "ms")
+    print(datetime.datetime.now().isoformat() + " do_fsync() " + "comm=" + str(event.comm) +", tid=" + str(event.tid) + ", fd=" + str(event.fd) + " " + str(float(event.t)/1000/1000) + "ms")
 
 # loop with callback to print_event
 b["events"].open_perf_buffer(print_event)
