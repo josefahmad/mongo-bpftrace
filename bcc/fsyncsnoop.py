@@ -82,9 +82,9 @@ void trace_ret_fsync(struct pt_regs *ctx) {
     udata.t = udata.t1 - udata.t0;
 
     // Print only fsyncs that take 1 second or longer
-    if (udata.t < 1 * 1000 * 1000 * 1000) {
-        return;
-    }
+//    if (udata.t < 1 * 1000 * 1000 * 1000) {
+//        return;
+//    }
 
     events.perf_submit(ctx, &udata, sizeof(udata));
 };
@@ -97,15 +97,12 @@ b.attach_kretprobe(event="do_fsync",
 
 class Data(ct.Structure):
     _fields_ = [
-        ("tid", ct.c_ulong),
-        ("fd", ct.c_ulong),
+        ("tid", ct.c_uint),
+        ("fd", ct.c_uint),
         ("t0", ct.c_ulonglong),
         ("t1", ct.c_ulonglong),
         ("t", ct.c_ulonglong),
     ]
-
-# header
-print("%-18s %s" % ("TIME(s)", "CALL"))
 
 # process event
 def print_event(cpu, data, size):
