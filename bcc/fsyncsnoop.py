@@ -31,9 +31,10 @@ struct val_t {
 
 struct userspace_data_t {
     u32 tid;
+    u32 fd;
     u64 t0;
     u64 t1;
-    u32 fd;
+    u64 t;
 };
 
 BPF_PERF_OUTPUT(events);
@@ -78,6 +79,13 @@ void trace_ret_fsync(struct pt_regs *ctx) {
 	udata.t1 = udata.t0;
     }
 
+    udata.t = udata.t1 - udata.t0;
+
+    // Print only fsyncs that take 1 second or longer
+    if (udata.t < 1 * 1000 * 1000 * 1000) {
+        return;
+    }
+
     events.perf_submit(ctx, &udata, sizeof(udata));
 };
 """)
@@ -90,9 +98,10 @@ b.attach_kretprobe(event="do_fsync",
 class Data(ct.Structure):
     _fields_ = [
         ("tid", ct.c_ulong),
+        ("fd", ct.c_ulong),
         ("t0", ct.c_ulonglong),
         ("t1", ct.c_ulonglong),
-        ("fd", ct.c_ulong)
+        ("t", ct.c_ulonglong),
     ]
 
 # header
@@ -101,7 +110,7 @@ print("%-18s %s" % ("TIME(s)", "CALL"))
 # process event
 def print_event(cpu, data, size):
     event = ct.cast(data, ct.POINTER(Data)).contents
-    print("do_fsync() t0: " + str(event.t0))
+    print("do_fsync() t: " + str(event.t) + "ns")
 
 # loop with callback to print_event
 b["events"].open_perf_buffer(print_event)
