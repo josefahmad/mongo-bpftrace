@@ -1,5 +1,5 @@
 **DISCLAIMER:** at the moment this is just a dumping ground. It undoubtely has
-bug and may not even do what the documentation/comments claim.
+bugs and may not even do what the documentation/comments claim to.
 
 Traffic generator: POCDriver - https://github.com/johnlpage/POCDriver
 
