@@ -1,3 +1,6 @@
+**DISCLAIMER:** at the moment this is just a dumping ground. It undoubtely has
+bug and may not even do what the documentation/comments claim.
+
 Traffic generator: POCDriver - https://github.com/johnlpage/POCDriver
 
 Latency Heatmap: https://github.com/brendangregg/HeatMap
