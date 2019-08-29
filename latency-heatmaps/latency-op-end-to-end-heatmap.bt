@@ -1,15 +1,13 @@
 // Trace server-side latency for client requests
 
-// At the moment it does not include the latency receiving the request from the network.
-
 // This script currently sets the following probes:
 // t0: uprobe on _sourceCallback(), which is called as soon as the thread has received the full client request
 //     from the network stack.
-// t1: uretprobe on _processMessage(). At this stage the response has been already (synchronously) relayed to
-//     the client.
+// t1: uretprobe on _processMessage(). Note that the response should be async (ASIO) so I doubt this will cover 
+//     the time spent transmitting the response.
 
 
-// Recap of Service State Machine (default synchronous mode):
+// Recap of server's Service State Machine:
 // sourceMessage: The connection thread sleeps until it's fed the message from the network stack.
 // processMessage: The connection thread processes and sinks the message back to the client.
 // cleanupSession: not relevant.
@@ -23,7 +21,6 @@ uprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine15_sourceCallbackENS_
 }
 
 // Return probe on ServiceStateMachine::_processMessage
-// It includes the time spent on the network.
 
 uretprobe:/usr/local/bin/mongod:_ZN5mongo19ServiceStateMachine15_processMessageENS0_11ThreadGuardE / @source[tid] /
 { 
