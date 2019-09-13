@@ -1,0 +1,9 @@
+#include <linux/sched.h>
+
+kprobe:schedule
+{
+	$task = (struct task_struct *)curtask;
+	if ($task->state == 0) {
+		@preemptions[comm] = count();
+	}
+}
