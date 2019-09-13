@@ -1,0 +1,8 @@
+#include <linux/sched.h>
+
+kprobe:schedule
+{
+	$task = (struct task_struct *)curtask;
+//	@states = lhist($task->state, 0, 4096, 1);
+	@states = hist($task->state);
+}
