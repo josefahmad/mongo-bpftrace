@@ -1,0 +1,9 @@
+#include <linux/sched.h>
+
+kprobe:finish_task_switch / pid == 28040 /
+{
+	$task = (struct task_struct *)arg0;
+//	@states = lhist($task->state, 0, 4096, 1);
+//	@states = hist($task->state);
+	printf("%d\n", $task->state);
+}
